@@ -1,0 +1,46 @@
+Options -Indexes
+DirectoryIndex index.php
+
+# Activar mod_rewrite
+RewriteEngine On
+
+# Redirigir todo a index.php excepto archivos y directorios que existen realmente
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php [QSA,L]
+
+# Bloquear acceso a directorios sensibles
+<IfModule mod_authz_core.c>
+    <DirectoryMatch "^.+/(config|includes|lang|models|controllers|database)(/.*)?$">
+        Require all denied
+    </DirectoryMatch>
+</IfModule>
+
+# Cabeceras de seguridad
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# Bloquear acceso a archivos de configuración y datos
+<FilesMatch "\.(env|sql|log|git|gitignore)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# Permitir caché para recursos estáticos
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/css "access plus 1 week"
+    ExpiresByType application/javascript "access plus 1 week"
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/svg+xml "access plus 1 week"
+</IfModule>
